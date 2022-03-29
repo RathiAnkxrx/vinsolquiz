@@ -12,7 +12,7 @@ const QuestionBank = createSlice({
       const number2 = Math.floor(Math.random() * rangeArr[0] + 1);
       let correctAnswer;
       let operator;
-
+      let symbol;
       if (operatorArr.length > 1) {
         const random = Math.floor(Math.random() * 4);
         operator = operatorArr[random];
@@ -22,18 +22,22 @@ const QuestionBank = createSlice({
       switch (operator) {
         case "Add":
           correctAnswer = number1 + number2;
+          symbol = "+";
           break;
         case "Subtraction":
           correctAnswer = number1 - number2;
+          symbol = "-";
           break;
         case "Multiply":
           correctAnswer = number1 * number2;
+          symbol = "*";
           break;
         case "Divide":
           correctAnswer = (number1 / number2).toFixed(1);
+          symbol = "/";
           break;
       }
-      const data = { operator, number1, number2, correctAnswer };
+      const data = { operator, number1, number2, correctAnswer, symbol };
       section == "1"
         ? state.quiz1.push({ ...data })
         : state.quiz2.push({ ...data });

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Header from "../Header";
 import {
   Question,
@@ -31,17 +31,17 @@ const QuizComp = ({ section }) => {
   const inputRef = useRef();
   const [start, setStart] = useState(false);
   const [range, setRange] = useState(false);
+  const [finalStart, setFinalStart] = useState(false);
   const [operation, setOperation] = useState(false);
   const [current, setCurrent] = useState(0);
+  const operationAll = ["Add", "Subtraction", "Multiply", "Divide"];
 
   const { range1 } = useSelector((state) => state.range);
   const { range2 } = useSelector((state) => state.range);
-  const rangeArr = section == "1" ? range1 : range2;
+  const rangeArr = section === "1" ? range1 : range2;
 
   const { operation1 } = useSelector((state) => state.operation);
   const { operation2 } = useSelector((state) => state.operation);
-  const operatorArr = section == "1" ? operation1 : operation2;
-
   const { quiz1 } = useSelector((state) => state.questionBank);
   const { quiz2 } = useSelector((state) => state.questionBank);
   const quizArr = section == "1" ? quiz1 : quiz2;
@@ -56,19 +56,21 @@ const QuizComp = ({ section }) => {
     dispatch(chooseRange({ type: `range${section}`, value }));
   };
 
-  const handleOpeartionChoice = (e) => {
+  const handleoperationChoice = (e) => {
     const { value } = e.target;
     setOperation((state) => !state);
     if (value === "all") {
-      makeQuestions();
       return;
+    } else {
+      dispatch(chooseOperation({ type: `operation${section}`, value }));
     }
-    dispatch(chooseOperation({ type: `operation${section}`, value }));
-    makeQuestions();
   };
 
   // genreate random question
   const makeQuestions = () => {
+    const operatorArr = section == "1" ? operation1 : operation2;
+
+    console.log(operation1, operatorArr, operation2, "inside");
     for (let i = 0; i < 20; i++) {
       dispatch(addQuestion({ rangeArr, operatorArr, section }));
     }
@@ -80,6 +82,11 @@ const QuizComp = ({ section }) => {
     setCurrent((state) => state + 1);
     inputRef.current.value = "";
     dispatch(calculateScroe(section));
+  };
+
+  const handleFinalStart = () => {
+    setFinalStart((state) => !state);
+    makeQuestions();
   };
 
   return (
@@ -117,7 +124,7 @@ const QuizComp = ({ section }) => {
           </>
         )}
 
-        {/* select opeartion if you want */}
+        {/* select operation if you want */}
         {start && range && !operation && (
           <>
             <QuizHeading>
@@ -125,21 +132,21 @@ const QuizComp = ({ section }) => {
             </QuizHeading>
             <ChoiceContainer>
               {/* Loop over all choice */}
-              {operatorArr.map((opeartion, index) => {
+              {operationAll.map((operation, index) => {
                 return (
                   <ChoiceButton
-                    onClick={(e) => handleOpeartionChoice(e)}
+                    onClick={(e) => handleoperationChoice(e)}
                     key={index}
-                    value={opeartion}
+                    value={operation}
                   >
-                    {opeartion}
+                    {operation}
                   </ChoiceButton>
                 );
               })}
 
               {/* Select all Choice */}
               <ChoiceButton
-                onClick={(e) => handleOpeartionChoice(e)}
+                onClick={(e) => handleoperationChoice(e)}
                 value="all"
               >
                 All
@@ -147,17 +154,23 @@ const QuizComp = ({ section }) => {
             </ChoiceContainer>
           </>
         )}
+        {/* final start */}
+        {start && range && operation && !finalStart && (
+          <StartButton onClick={handleFinalStart}>
+            Let's start finally..
+          </StartButton>
+        )}
 
         {/* Quiz questions */}
-        {start && range && operation && current <= 19 && (
+        {start && range && operation && finalStart && current <= 19 && (
           <QuestionContainer>
             <QuizSpan>
               {current < 9 ? `0${current + 1}` : `${current + 1}`}{" "}
             </QuizSpan>
             <Question>
               {quizArr[current].operator} these two numbers (
-              {quizArr[current].number1},{quizArr[current].number2}) and write
-              your answer
+              {quizArr[current].number1} {quizArr[current].symbol}{" "}
+              {quizArr[current].number2}) and write your answer
               {quizArr[current].operator == "Divide"
                 ? "round your answer with 1 decimal place"
                 : ""}
@@ -170,7 +183,7 @@ const QuizComp = ({ section }) => {
         )}
 
         {/* Your total score */}
-        {start && range && operation && (
+        {start && range && finalStart && operation && (
           <ScoreContainer>
             <QuizHeading>Your Score</QuizHeading>
             <Score>{score ? score : 0}/20</Score>
