@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Header from "../Header";
 import {
   Question,
@@ -19,11 +19,21 @@ import {
   SubContext,
   Score,
   ScoreContainer,
+  QuizRule,
+  RulesHeading,
+  Timmer,
+  Time,
+  Container,
+  ResetButton,
 } from "../Main/MainElement";
-import { chooseRange } from "../../store/rangeChoice";
+import { chooseRange, resetRange } from "../../store/rangeChoice";
 import { useDispatch, useSelector } from "react-redux";
-import { chooseOperation } from "../../store/operation";
-import { addQuestion, calculateScroe } from "../../store/questions";
+import { chooseOperation, resetOperation } from "../../store/operation";
+import {
+  addQuestion,
+  calculateScroe,
+  resetQuestion,
+} from "../../store/questions";
 import { inputAnswer } from "../../store/questions";
 
 const QuizComp = ({ section }) => {
@@ -33,8 +43,10 @@ const QuizComp = ({ section }) => {
   const [range, setRange] = useState(false);
   const [finalStart, setFinalStart] = useState(false);
   const [operation, setOperation] = useState(false);
-  const [current, setCurrent] = useState(0);
+  const [currentQus, setCurrentQus] = useState(0);
+
   const operationAll = ["Add", "Subtraction", "Multiply", "Divide"];
+  const [time, setTime] = useState(0);
 
   const { range1 } = useSelector((state) => state.range);
   const { range2 } = useSelector((state) => state.range);
@@ -69,24 +81,52 @@ const QuizComp = ({ section }) => {
   // genreate random question
   const makeQuestions = () => {
     const operatorArr = section == "1" ? operation1 : operation2;
-
-    console.log(operation1, operatorArr, operation2, "inside");
     for (let i = 0; i < 20; i++) {
       dispatch(addQuestion({ rangeArr, operatorArr, section }));
     }
   };
 
+  //Handle Next Question
   const handleNext = () => {
     const answer = inputRef.current.value;
-    dispatch(inputAnswer({ answer, section, current }));
-    setCurrent((state) => state + 1);
+    dispatch(inputAnswer({ answer, section, currentQus }));
+    setCurrentQus((state) => state + 1);
     inputRef.current.value = "";
     dispatch(calculateScroe(section));
+    setTime(20);
   };
 
+  //Finally Start The quiz
   const handleFinalStart = () => {
     setFinalStart((state) => !state);
     makeQuestions();
+    setTime(20);
+  };
+
+  useEffect(() => {
+    if (time <= 0 && start) handleNext();
+
+    const interval = setInterval(() => {
+      setTime((state) => (state > 0 ? state - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [time]);
+
+  //Reset Quiz
+  const resetHandle = () => {
+    //CLear all States
+    setStart(false);
+    setRange(false);
+    setFinalStart(false);
+    setOperation(false);
+    setCurrentQus(0);
+    setTime(0);
+
+    //Claear all questiona and other parameter
+    dispatch(resetQuestion(section));
+    dispatch(resetRange(section));
+    dispatch(resetOperation(section));
   };
 
   return (
@@ -156,42 +196,58 @@ const QuizComp = ({ section }) => {
         )}
         {/* final start */}
         {start && range && operation && !finalStart && (
-          <StartButton onClick={handleFinalStart}>
-            Let's start finally..
-          </StartButton>
+          <>
+            <RulesHeading>Quiz Rules</RulesHeading>
+            <QuizRule>
+              You have 20s to answer a question.. after 20s next question will
+              be loaded automatically 🙃
+            </QuizRule>
+            <StartButton onClick={handleFinalStart}>
+              Let's start finally..
+            </StartButton>
+          </>
         )}
 
         {/* Quiz questions */}
-        {start && range && operation && finalStart && current <= 19 && (
+        {start && range && operation && finalStart && currentQus <= 19 && (
           <QuestionContainer>
             <QuizSpan>
-              {current < 9 ? `0${current + 1}` : `${current + 1}`}{" "}
+              {currentQus < 9 ? `0${currentQus + 1}` : `${currentQus + 1}`}
             </QuizSpan>
             <Question>
-              {quizArr[current].operator} these two numbers (
-              {quizArr[current].number1} {quizArr[current].symbol}{" "}
-              {quizArr[current].number2}) and write your answer
-              {quizArr[current].operator == "Divide"
+              {quizArr[currentQus].operator} these two numbers (
+              {quizArr[currentQus].number1} {quizArr[currentQus].symbol}
+              {quizArr[currentQus].number2}) and write your answer
+              {quizArr[currentQus].operator == "Divide"
                 ? "round your answer with 1 decimal place"
                 : ""}
             </Question>
             <AnswerInput ref={inputRef} />
             <NextButton onClick={handleNext}>
-              {current === 19 ? "Finish" : "Next"}
+              {currentQus === 19 ? "Finish" : "Next"}
             </NextButton>
           </QuestionContainer>
         )}
 
         {/* Your total score */}
         {start && range && finalStart && operation && (
-          <ScoreContainer>
-            <QuizHeading>Your Score</QuizHeading>
-            <Score>{score ? score : 0}/20</Score>
-          </ScoreContainer>
+          <>
+            <Container>
+              <Timmer>
+                Time left:
+                <Time timeLeft={time}>{time}</Time>
+              </Timmer>
+              <ScoreContainer>
+                <QuizHeading>Your Score</QuizHeading>
+                <Score>{score ? score : 0}/20</Score>
+              </ScoreContainer>
+            </Container>
+            <ResetButton onClick={resetHandle}>Reset Quiz?</ResetButton>
+          </>
         )}
 
         {/* Show answers */}
-        {current > 19 && (
+        {currentQus > 19 && (
           <>
             <QuizHeading>Your Result</QuizHeading>
             <AnswerContainer>

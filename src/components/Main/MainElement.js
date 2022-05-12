@@ -1,6 +1,16 @@
 import styled from "styled-components";
 import { COLOR } from "../../constant";
 
+export const CumulativeScore = styled.div`
+  max-width: 100vw;
+  width: 100%;
+  height: 4.8rem;
+  font-size: 2.4rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: ${COLOR.skyBlue};
+`;
 export const MainContainer = styled.section`
   max-width: 100vw;
   width: 100%;
@@ -166,11 +176,15 @@ export const SubContext = styled.p`
   font-size: 1.2rem;
 `;
 
-export const ScoreContainer = styled.div`
+export const Container = styled.div`
   display: flex;
-  justify-content: center;
-  margin: 4.8rem;
+  justify-content: space-between;
+  align-items: center;
+  margin: 4.8rem 0;
+`;
+export const ScoreContainer = styled.div`
   font-size: 1.8rem;
+  display: flex;
   align-items: center;
 `;
 export const Score = styled.p`
@@ -178,4 +192,34 @@ export const Score = styled.p`
   font-size: 700;
   color: ${COLOR.cherry};
   margin-left: 1.8rem;
+`;
+
+export const RulesHeading = styled.p`
+  color: ${COLOR.cherry};
+  font-size: 2.4rem;
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 2.4rem;
+`;
+export const QuizRule = styled.p`
+  font-size: 1.8rem;
+`;
+
+export const Timmer = styled.div`
+  display: flex;
+  font-size: 2.4rem;
+  font-weight: 700;
+`;
+
+export const Time = styled.p`
+  margin-left: 2.4rem;
+  color: ${(props) =>
+    props.timeLeft >= 10 ? COLOR.greenDark : COLOR.cherryDark};
+`;
+
+export const ResetButton = styled.button`
+  width: 12rem;
+  height: 4.8rem;
+  background: linear-gradient(to bottom, ${COLOR.cherry}, ${COLOR.cherryDark});
 `;

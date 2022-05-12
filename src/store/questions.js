@@ -46,11 +46,11 @@ const QuestionBank = createSlice({
     inputAnswer(state, actions) {
       const { answer } = actions.payload;
       const { section } = actions.payload;
-      const { current } = actions.payload;
+      const { currentQus } = actions.payload;
 
       section == "1"
         ? (state.quiz1 = state.quiz1.map((item, index) =>
-            index === current
+            index === currentQus
               ? {
                   ...item,
                   inputAnswer: +answer,
@@ -59,7 +59,7 @@ const QuestionBank = createSlice({
               : item
           ))
         : (state.quiz2 = state.quiz2.map((item, index) =>
-            index === current
+            index === currentQus
               ? {
                   ...item,
                   inputAnswer: answer,
@@ -72,6 +72,7 @@ const QuestionBank = createSlice({
     calculateScroe(state, actions) {
       const section = actions.payload;
       let count = 0;
+
       section == "1"
         ? state.quiz1.forEach((element) => {
             if (element.isCorrect) count++;
@@ -81,9 +82,15 @@ const QuestionBank = createSlice({
           });
       section == "1" ? (state.score1 = count) : (state.score2 = count);
     },
+
+    resetQuestion(state, actions) {
+      const section = actions.payload;
+      section === "1" ? (state.quiz1 = []) : (state.quiz2 = []);
+      section === "1" ? (state.score1 = 0) : (state.score2 = 0);
+    },
   },
 });
 
-export const { addQuestion, inputAnswer, calculateScroe } =
+export const { addQuestion, inputAnswer, calculateScroe, resetQuestion } =
   QuestionBank.actions;
 export default QuestionBank.reducer;
